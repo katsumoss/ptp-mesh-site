@@ -1,0 +1,49 @@
+site_name: ptp mesh
+site_description: preset が違っても、マルチホップでも、島を跨いで届く実験的な Meshtastic MQTT ブリッジ
+site_url: https://katsumoss.github.io/ptp-mesh-site/
+repo_url: https://github.com/katsumoss/ptp-mesh-site
+repo_name: katsumoss/ptp-mesh-site
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: ja
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: ダークモードへ
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: ライトモードへ
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.footer
+    - content.action.edit
+    - content.code.copy
+
+nav:
+  - ホーム: index.md
+  - 参加方法: connect.md
+  - 公式マップに載せる: map.md
+  - リンク: links.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight
+  - tables
+  - attr_list
