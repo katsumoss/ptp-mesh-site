@@ -35,8 +35,4 @@ Nodes within RF range of one of our gateways can also join with no MQTT setup at
 - `ptp/commons` is public: anyone can read/write it. Private groups = separate root topic + your own PSK on a named channel.
 - Nodes with **OK to MQTT ON + position enabled** get mirrored (position + node info only, never message bodies) to the official broker and appear on [meshmap.net](https://meshmap.net). Default is OFF = not listed. Set your channel position precision below maximum (precise positions are dropped by the official server anyway).
 
-## Interested in running your own instance?
-
-The bridge (cross-preset hash rewrite + group-isolated fan-out + hop-preserving re-broadcast) is a small Python service on a $5 VPS with Mosquitto. The code isn't packaged for public release yet — if you'd like to run one for your region, open an issue on [GitHub](https://github.com/katsumoss/ptp-mesh-site/issues) and it will motivate me to publish a deploy kit.
-
 *Japanese documentation (main): [top page](index.md)*
