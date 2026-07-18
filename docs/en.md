@@ -17,8 +17,8 @@ Anyone can connect — same open-participation model as the official public MQTT
 | Setting | Value |
 |---|---|
 | Server (Address) | `160.16.104.222` : `1883` |
-| Username | `friend` |
-| Password | `kcu8nxvtae72r4` (all lowercase + digits, no confusable l/O/0/1) |
+| Username / Password (recommended) | `friend` / `kcu8nxvtae72r4` (all lowercase + digits, no confusable characters) |
+| Username / Password (legacy, still valid) | `guest` / `lboAwDEzV1Hvh33O` (⚠ starts with lowercase L, ends with capital O — copy-paste recommended) |
 | Encryption | **ON** |
 | TLS | **OFF** (⚠ ON will silently fail) |
 | Proxy to Client | phone-proxy = **ON** / node on WiFi = **OFF** |
