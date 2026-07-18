@@ -17,8 +17,8 @@ Anyone can connect — same open-participation model as the official public MQTT
 | Setting | Value |
 |---|---|
 | Server (Address) | `160.16.104.222` : `1883` |
-| Username | `guest` |
-| Password | `lboAwDEzV1Hvh33O` |
+| Username | `friend` |
+| Password | `kcu8nxvtae72r4` (all lowercase + digits, no confusable l/O/0/1) |
 | Encryption | **ON** |
 | TLS | **OFF** (⚠ ON will silently fail) |
 | Proxy to Client | phone-proxy = **ON** / node on WiFi = **OFF** |
@@ -31,7 +31,7 @@ Nodes within RF range of one of our gateways can also join with no MQTT setup at
 
 ## Notes
 
-- **Experimental, hobbyist-run.** TLS is off (credentials travel in plaintext), `guest` is shared by everyone, and the password may rotate.
+- **Experimental, hobbyist-run.** TLS is off (credentials travel in plaintext), `friend` is shared by everyone, and the password may rotate.
 - `ptp/commons` is public: anyone can read/write it. Private groups = separate root topic + your own PSK on a named channel.
 - Nodes with **OK to MQTT ON + position enabled** get mirrored (position + node info only, never message bodies) to the official broker and appear on [meshmap.net](https://meshmap.net). Default is OFF = not listed. Set your channel position precision below maximum (precise positions are dropped by the official server anyway).
 
