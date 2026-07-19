@@ -27,7 +27,7 @@ Anyone can connect — same open-participation model as the official public MQTT
 
 Keep your primary channel on the **default PSK** (`AQ==`) when joining commons. Your modem preset is free — the bridge absorbs the difference.
 
-Nodes within RF range of one of our gateways can also join with no MQTT setup at all: just enable **OK to MQTT** (LoRa settings) and match the local gateway's preset/slot.
+Nodes within RF range of one of our gateways can also join with no MQTT setup at all: just enable **OK to MQTT** (LoRa settings). All our gateways run **LongFast / slot 12** (the JP-standard default), so stock-configured devices match out of the box.
 
 ## Notes
 
