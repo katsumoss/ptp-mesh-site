@@ -7,6 +7,8 @@ MQTT公式ブローカーに接続しても0hopで単なるネットメッセー
 
 参加方式は公式パブリック MQTT と同じ「オープン参加」— サーバーに接続すれば誰でも使えます。
 
+![Meshtastic の島をゲートウェイでつなぐ 4コマ漫画：公園で遊ぶ子どもたちが、ゲートウェイとインターネットを通じて遠くの街の人ともメッセージできるようになる様子](images/intro-comic-ja.png){ loading=lazy }
+
 [参加方法を見る](connect.md){ .md-button .md-button--primary }
 [公式マップに載せる](map.md){ .md-button }
 
