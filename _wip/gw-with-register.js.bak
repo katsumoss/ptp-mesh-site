@@ -1,0 +1,374 @@
+/* ptp mesh — gateway list & registry (reads docs/gateways.json)
+   - list page: container #gwMap + #gwTbl
+   - register page: container #gwForm
+   Passkeys are never stored/transmitted in plaintext: public data holds only
+   key_salt + key_hash = SHA-256(salt + ":" + passkey). Client-side checks are a
+   UX aid on a static site (bypassable); the real gate is the maintainer merging. */
+(function () {
+  "use strict";
+  var DATA_URL = "../gateways.json";
+  var LEAFLET_CSS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";
+  var LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
+
+  var COUNTRIES = ["日本", "United States", "United Kingdom", "Germany", "France", "Italy", "Spain", "Netherlands", "Switzerland", "Australia", "New Zealand", "Canada", "Taiwan", "South Korea", "Singapore", "その他 / Other"];
+  var PREF = ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"];
+  var CENTROID = { "東京都": [35.69, 139.69], "茨城県": [36.3, 140.45], "神奈川県": [35.44, 139.4], "埼玉県": [35.9, 139.4], "千葉県": [35.5, 140.2], "北海道": [43.2, 142.8], "宮城県": [38.4, 140.9], "福島県": [37.4, 140.3], "栃木県": [36.7, 139.9], "群馬県": [36.4, 139.0], "新潟県": [37.5, 138.9], "長野県": [36.2, 138.0], "静岡県": [34.9, 138.4], "愛知県": [35.0, 137.2], "京都府": [35.2, 135.6], "大阪府": [34.6, 135.5], "兵庫県": [35.0, 134.8], "広島県": [34.6, 132.9], "福岡県": [33.6, 130.5], "沖縄県": [26.5, 128.0], "United States": [39, -98], "United Kingdom": [54, -2], "Germany": [51, 10], "France": [46, 2], "Taiwan": [23.7, 121], "South Korea": [36.5, 127.8], "Australia": [-25, 134] };
+
+  function loadLeaflet() {
+    return new Promise(function (resolve) {
+      if (window.L) return resolve();
+      if (!document.querySelector('link[data-gw-leaflet]')) {
+        var l = document.createElement("link");
+        l.rel = "stylesheet"; l.href = LEAFLET_CSS; l.setAttribute("data-gw-leaflet", "");
+        document.head.appendChild(l);
+      }
+      var s = document.querySelector('script[data-gw-leaflet]');
+      if (s) { if (window.L) return resolve(); s.addEventListener("load", function () { resolve(); }); return; }
+      s = document.createElement("script");
+      s.src = LEAFLET_JS; s.setAttribute("data-gw-leaflet", "");
+      s.onload = function () { resolve(); };
+      document.head.appendChild(s);
+    });
+  }
+  function fetchData() {
+    return fetch(DATA_URL, { cache: "no-cache" }).then(function (r) {
+      if (!r.ok) throw new Error("gateways.json " + r.status);
+      return r.json();
+    });
+  }
+  function esc(s) { return (s == null ? "" : String(s)).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function jstr(s) { return JSON.stringify(s == null ? "" : String(s)); }
+  function sha256hex(str) {
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function (buf) {
+      return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+    });
+  }
+  function randSalt() {
+    var a = new Uint8Array(8); crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+  }
+
+  /* ---------------- LIST PAGE ---------------- */
+  function initList(mapEl) {
+    if (mapEl.dataset.gwInit) return; mapEl.dataset.gwInit = "1";
+    var tbl = document.getElementById("gwTbl");
+    fetchData().then(function (data) {
+      var gws = data.gateways || [];
+      return loadLeaflet().then(function () {
+        var map = L.map(mapEl, { scrollWheelZoom: false }).setView([37, 139], 5);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(map);
+        var grp = L.featureGroup().addTo(map);
+        gws.forEach(function (g) {
+          if (g.lat == null) return;
+          var m = L.circleMarker([g.lat, g.lon], { radius: 9, color: "#00897b", weight: 2, fillColor: "#00897b", fillOpacity: 0.55 }).addTo(grp);
+          m.bindPopup("<b>" + esc(g.name) + "</b><br>" + esc(g.region) + "（" + esc(g.country) + "）<br>root: " + esc(g.root) + "<br>" + esc(g.preset || ""));
+        });
+        if (gws.some(function (g) { return g.lat != null; })) { try { map.fitBounds(grp.getBounds().pad(0.4)); } catch (e) { } }
+        setTimeout(function () { map.invalidateSize(); }, 120);
+        if (tbl) tbl.innerHTML = buildTable(gws);
+      });
+    }).catch(function (e) {
+      if (tbl) tbl.innerHTML = '<p class="gw-note-loading">一覧を読み込めませんでした（' + esc(e.message) + "）。</p>";
+    });
+  }
+  function buildTable(gws) {
+    var rows = gws.map(function (g, i) { var o = {}; for (var k in g) o[k] = g[k]; o._i = i; return o; })
+      .sort(function (a, b) { return (a.country + a.region + a.name).localeCompare(b.country + b.region + b.name, "ja"); });
+    var html = '<div class="gw-tblwrap"><table class="gw-tbl"><thead><tr><th>ゲートウェイ</th><th>preset</th><th>グループ(root)</th><th>運用</th></tr></thead><tbody>';
+    var cur = "";
+    rows.forEach(function (g) {
+      var loc = g.country + " / " + g.region;
+      if (loc !== cur) {
+        cur = loc;
+        var cnt = rows.filter(function (x) { return x.country + " / " + x.region === loc; }).length;
+        html += '<tr class="gw-grp"><td colspan="4">' + esc(loc) + '<span class="gw-badge">' + cnt + "</span></td></tr>";
+      }
+      html += "<tr><td class=\"gw-name\">" + esc(g.name) + "</td><td>" + esc(g.preset || "—") +
+        '</td><td><span class="gw-code">' + esc(g.root) + '</span></td><td><span class="gw-sched">' + esc(g.schedule || "—") + "</span></td></tr>";
+    });
+    html += "</tbody></table></div>";
+    return html;
+  }
+
+  /* ---------------- REGISTER PAGE ---------------- */
+  function initForm(host) {
+    if (host.dataset.gwInit) return; host.dataset.gwInit = "1";
+    if (!(window.crypto && crypto.subtle)) {
+      host.innerHTML = '<p class="gw-note-loading">この機能には HTTPS 環境が必要です（パスキーのハッシュ化に Web Crypto を使用します）。</p>';
+      return;
+    }
+    host.innerHTML = FORM_HTML;
+    var $ = function (id) { return document.getElementById(id); };
+    var state = { editIdx: -1, entry: null, data: { gateways: [] }, pinMap: null, marker: null };
+
+    // populate country select
+    var cs = $("gwF_country"); cs.innerHTML = "";
+    COUNTRIES.forEach(function (c) { cs.add(new Option(c, c)); });
+    cs.value = "日本";
+    cs.addEventListener("change", function () { onCountry(); recenter(); });
+    $("gwF_regionSel").addEventListener("change", recenter);
+
+    function onCountry() {
+      var jp = $("gwF_country").value === "日本";
+      var sel = $("gwF_regionSel"), txt = $("gwF_regionTxt");
+      $("gwF_regionLabel").innerHTML = (jp ? "都道府県" : "State / Region") + '<span class="gw-req">必須</span>';
+      if (jp) {
+        sel.style.display = "block"; txt.style.display = "none";
+        if (sel.options.length <= 1) { sel.innerHTML = ""; sel.add(new Option("選択してください", "")); PREF.forEach(function (p) { sel.add(new Option(p, p)); }); }
+      } else { sel.style.display = "none"; txt.style.display = "block"; }
+    }
+    function ensurePinMap() {
+      if (state.pinMap) return Promise.resolve();
+      return loadLeaflet().then(function () {
+        state.pinMap = L.map($("gwF_pin")).setView([35.69, 139.69], 9);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OSM" }).addTo(state.pinMap);
+        state.pinMap.on("click", function (e) { setPin(e.latlng.lat, e.latlng.lng); });
+        setTimeout(function () { state.pinMap.invalidateSize(); }, 120);
+      });
+    }
+    function setPin(lat, lon) {
+      if (!state.marker) {
+        state.marker = L.marker([lat, lon], { draggable: true }).addTo(state.pinMap);
+        state.marker.on("dragend", function () { var p = state.marker.getLatLng(); showCoord(p.lat, p.lng); });
+      } else { state.marker.setLatLng([lat, lon]); }
+      showCoord(lat, lon);
+    }
+    function showCoord(lat, lon) { $("gwF_coord").textContent = "ピン: " + lat.toFixed(5) + ", " + lon.toFixed(5); }
+    function recenter() {
+      var jp = $("gwF_country").value === "日本";
+      var key = jp ? $("gwF_regionSel").value : $("gwF_country").value;
+      var c = CENTROID[key]; if (!c || !state.pinMap) return;
+      state.pinMap.setView(c, jp ? 10 : 5); setPin(c[0], c[1]);
+    }
+    function setButtons() {
+      var b = $("gwF_btns");
+      if (state.editIdx < 0) {
+        b.innerHTML = '<button class="gw-b-save" data-act="save">登録リクエストを作成</button>';
+      } else {
+        b.innerHTML = '<button class="gw-b-save" data-act="save">変更リクエストを作成</button><button class="gw-b-del" data-act="del">削除リクエスト</button><button class="gw-b-cancel" data-act="cancel">新規に戻る</button>';
+      }
+    }
+    function fail(m) { var e = $("gwF_err"); e.textContent = m; e.style.display = "block"; }
+    function clearErr() { $("gwF_err").style.display = "none"; }
+
+    function newMode() {
+      state.editIdx = -1; state.entry = null;
+      $("gwF_title").textContent = "新規登録";
+      $("gwF_head").textContent = "国・都道府県を選び、地図でピンを置いてください。";
+      $("gwF_name").value = ""; $("gwF_preset").value = ""; $("gwF_root").value = "ptp/commons"; $("gwF_sched").value = ""; $("gwF_key").value = "";
+      $("gwF_country").value = "日本"; onCountry(); $("gwF_regionSel").value = ""; $("gwF_regionTxt").value = "";
+      $("gwF_consentWrap").style.display = "flex"; $("gwF_consent").checked = false;
+      $("gwF_keyHint").innerHTML = "後で編集・削除するときの合言葉。<b>公開サイトには保存されません（ハッシュのみ）。強固な認証ではありません。</b>忘れないように。";
+      state.marker = null; $("gwF_coord").textContent = "—"; $("gwF_out").style.display = "none"; clearErr();
+      setButtons();
+      ensurePinMap().then(function () { state.pinMap.setView([35.69, 139.69], 9); });
+    }
+    function editMode(i) {
+      var g = state.data.gateways[i];
+      state.editIdx = i; state.entry = g;
+      $("gwF_title").textContent = "編集： " + g.name;
+      $("gwF_head").textContent = "内容を変更するか、削除できます。ピンもドラッグで直せます。";
+      $("gwF_name").value = g.name || ""; $("gwF_preset").value = g.preset || ""; $("gwF_root").value = g.root || "ptp/commons"; $("gwF_sched").value = g.schedule || "";
+      var jp = g.country === "日本"; $("gwF_country").value = g.country || "日本"; onCountry();
+      if (jp) $("gwF_regionSel").value = g.region || ""; else $("gwF_regionTxt").value = g.region || "";
+      $("gwF_consentWrap").style.display = "none";
+      $("gwF_key").value = "";
+      $("gwF_keyHint").innerHTML = "パスキーを<b>変えたいときだけ</b>入力（空欄なら現在のパスキーを維持）。";
+      state.marker = null; $("gwF_out").style.display = "none"; clearErr();
+      setButtons();
+      ensurePinMap().then(function () { if (g.lat != null) { state.pinMap.setView([g.lat, g.lon], 13); setPin(g.lat, g.lon); } });
+      $("gwFormBox").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function readForm() {
+      var country = $("gwF_country").value, jp = country === "日本";
+      var region = (jp ? $("gwF_regionSel").value : $("gwF_regionTxt").value).trim();
+      var p = state.marker ? state.marker.getLatLng() : null;
+      return {
+        name: $("gwF_name").value.trim(), country: country, region: region,
+        preset: $("gwF_preset").value.trim(),
+        lat: p ? +p.lat.toFixed(5) : null, lon: p ? +p.lng.toFixed(5) : null,
+        root: $("gwF_root").value.trim() || "ptp/commons",
+        schedule: $("gwF_sched").value.trim()
+      };
+    }
+    function objBlock(o) {
+      var lines = ["    {",
+        '      "name": ' + jstr(o.name) + ",",
+        '      "country": ' + jstr(o.country) + ",",
+        '      "region": ' + jstr(o.region) + ",",
+        '      "preset": ' + jstr(o.preset) + ",",
+        '      "root": ' + jstr(o.root) + ",",
+        '      "lat": ' + o.lat + ",",
+        '      "lon": ' + o.lon + ",",
+        '      "schedule": ' + jstr(o.schedule) + ",",
+        '      "key_salt": ' + jstr(o.key_salt) + ",",
+        '      "key_hash": ' + jstr(o.key_hash),
+        "    }"];
+      return lines.join("\n");
+    }
+    function emit(title, deliver, block) {
+      $("gwF_out").style.display = "block";
+      $("gwF_deliver").innerHTML = deliver;
+      $("gwF_block").textContent = "# --- " + title + " ---\n" + block;
+      $("gwF_out").scrollIntoView({ behavior: "smooth" });
+    }
+
+    function doSave() {
+      clearErr();
+      var d = readForm();
+      if (!d.name) return fail("GW名を入力してください。");
+      if (!d.region) return fail("都道府県／地域を選択・入力してください。");
+      if (d.lat == null) return fail("地図をクリックしてピンを置いてください。");
+      if (!/^ptp\//.test(d.root)) return fail("root は ptp/ から始まるフルパスで（例 ptp/commons）。");
+      var isNew = state.editIdx < 0;
+      var keyIn = $("gwF_key").value.trim();
+      if (isNew) {
+        if (!keyIn) return fail("編集用パスキーを入力してください。");
+        if (!$("gwF_consent").checked) return fail("公開への同意にチェックしてください。");
+        var salt = randSalt();
+        sha256hex(salt + ":" + keyIn).then(function (h) {
+          d.key_salt = salt; d.key_hash = h;
+          emit("新規登録", "<b>登録リクエストができました。</b><br>下のブロックをコピーして Discord の <b>#gateway-registry</b> に貼るか、GitHub で <code>docs/gateways.json</code> の <code>gateways</code> 配列に追記して PR を送ってください。運営がマージすると一覧に載ります。", objBlock(d));
+        });
+      } else {
+        var cur = state.entry;
+        if (keyIn) {
+          var salt2 = randSalt();
+          sha256hex(salt2 + ":" + keyIn).then(function (h) {
+            d.key_salt = salt2; d.key_hash = h;
+            emit("変更リクエスト: " + cur.name, "<b>変更リクエストができました（パスキー更新あり）。</b><br>コピーして Discord <b>#gateway-registry</b> か PR で提出してください。運営が該当エントリを差し替えます。", objBlock(d));
+          });
+        } else {
+          d.key_salt = cur.key_salt || ""; d.key_hash = cur.key_hash || "";
+          emit("変更リクエスト: " + cur.name, "<b>変更リクエストができました。</b><br>コピーして Discord <b>#gateway-registry</b> か PR で提出してください。運営が該当エントリを差し替えます。", objBlock(d));
+        }
+      }
+    }
+    function doDelete() {
+      if (state.editIdx < 0) return;
+      var g = state.entry;
+      if (!confirm("「" + g.name + "」の削除リクエストを作成しますか？")) return;
+      var block = ["{",
+        '  "request": "delete",',
+        '  "name": ' + jstr(g.name) + ",",
+        '  "key_salt": ' + jstr(g.key_salt || "") + ",",
+        '  "key_hash": ' + jstr(g.key_hash || ""),
+        "}"].join("\n");
+      emit("削除リクエスト", "<b>削除リクエストができました。</b><br>コピーして Discord <b>#gateway-registry</b> か PR で提出してください。運営が該当エントリを削除します。", block);
+    }
+
+    $("gwF_btns").addEventListener("click", function (e) {
+      var act = e.target.getAttribute("data-act");
+      if (act === "save") doSave();
+      else if (act === "del") doDelete();
+      else if (act === "cancel") newMode();
+    });
+    $("gwF_copy").addEventListener("click", function () {
+      var t = $("gwF_block").textContent;
+      navigator.clipboard.writeText(t).then(function () {
+        var b = $("gwF_copy"); b.textContent = "✓ コピーしました"; setTimeout(function () { b.textContent = "📋 コピー"; }, 1600);
+      });
+    });
+
+    // build edit list + verify via hash
+    function verify(g, input) {
+      if (!g.key_salt || !g.key_hash) return Promise.resolve(false);
+      return sha256hex(g.key_salt + ":" + input).then(function (h) { return h === g.key_hash; });
+    }
+    function askEdit(i) {
+      var g = state.data.gateways[i];
+      var p = prompt("「" + g.name + "」の編集用パスキーを入力してください");
+      if (p === null) return;
+      verify(g, p).then(function (ok) { if (!ok) { alert("パスキーが一致しません。"); return; } editMode(i); });
+    }
+    function askDelete(i) {
+      var g = state.data.gateways[i];
+      var p = prompt("「" + g.name + "」を削除します。編集用パスキーを入力してください");
+      if (p === null) return;
+      verify(g, p).then(function (ok) { if (!ok) { alert("パスキーが一致しません。"); return; } editMode(i); setTimeout(doDelete, 50); });
+    }
+    function buildEditList() {
+      var ul = $("gwF_elist"); ul.innerHTML = "";
+      state.data.gateways.forEach(function (g, i) {
+        var li = document.createElement("li");
+        var managed = g.managed || !g.key_hash;
+        li.innerHTML = '<span class="gw-en">' + esc(g.name) + '</span><span class="gw-managed">' + esc(g.region) + "</span>";
+        if (managed) {
+          var s = document.createElement("span"); s.className = "gw-managed"; s.textContent = "運営管理";
+          li.appendChild(s);
+        } else {
+          var be = document.createElement("button"); be.className = "gw-ed"; be.textContent = "編集"; be.addEventListener("click", function () { askEdit(i); });
+          var bd = document.createElement("button"); bd.className = "gw-dl"; bd.textContent = "削除"; bd.addEventListener("click", function () { askDelete(i); });
+          li.appendChild(be); li.appendChild(bd);
+        }
+        ul.appendChild(li);
+      });
+    }
+
+    onCountry();
+    fetchData().then(function (data) { state.data = data || { gateways: [] }; buildEditList(); }).catch(function () { });
+    newMode();
+  }
+
+  var FORM_HTML = [
+    '<div class="gw-form" id="gwFormBox">',
+    '  <h2 id="gwF_title">新規登録</h2>',
+    '  <p class="gw-hint" id="gwF_head"></p>',
+    '  <label>公開ゲートウェイ名<span class="gw-req">必須</span></label>',
+    '  <div class="gw-hint">例：秋葉原ゲートウェイ / Akihabara GW</div>',
+    '  <input type="text" id="gwF_name" placeholder="秋葉原ゲートウェイ">',
+    '  <label>国<span class="gw-req">必須</span></label>',
+    '  <select id="gwF_country"></select>',
+    '  <label id="gwF_regionLabel">都道府県<span class="gw-req">必須</span></label>',
+    '  <select id="gwF_regionSel"></select>',
+    '  <input type="text" id="gwF_regionTxt" placeholder="State / Region" style="display:none">',
+    '  <label>preset / slot</label>',
+    '  <div class="gw-hint">例：LongFast / slot12（任意）</div>',
+    '  <input type="text" id="gwF_preset" placeholder="LongFast / slot12">',
+    '  <label>地図でピン位置を指定<span class="gw-req">必須</span></label>',
+    '  <div class="gw-hint">クリックまたはドラッグで移動。<b>駅など公開してよい目印に置き、自宅の正確な位置は避けてください。</b></div>',
+    '  <div class="gw-pin" id="gwF_pin"></div>',
+    '  <div class="gw-coord" id="gwF_coord">—</div>',
+    '  <label>接続先 root<span class="gw-req">必須</span></label>',
+    '  <div class="gw-hint">ptp/ からのフルパス（例：ptp/commons、私的島なら ptp/自分の島名）</div>',
+    '  <input type="text" id="gwF_root" value="ptp/commons">',
+    '  <label>運用スケジュール</label>',
+    '  <div class="gw-hint">例：常時 / 夜間停止 / 平日のみ（自己申告・任意）</div>',
+    '  <input type="text" id="gwF_sched" placeholder="常時">',
+    '  <label>編集用パスキー<span class="gw-req">必須</span></label>',
+    '  <div class="gw-hint" id="gwF_keyHint"></div>',
+    '  <input type="text" id="gwF_key" placeholder="例：akiba-fujisoba-2026">',
+    '  <div class="gw-chk" id="gwF_consentWrap">',
+    '    <input type="checkbox" id="gwF_consent">',
+    '    <label for="gwF_consent" style="margin:0;font-weight:400">この情報（GW名・国・都道府県・ピン位置・root）を<b>公開マップに掲載すること</b>に同意します。全世界から閲覧できます。</label>',
+    '  </div>',
+    '  <div class="gw-err" id="gwF_err"></div>',
+    '  <div class="gw-btns" id="gwF_btns"></div>',
+    '  <div class="gw-out" id="gwF_out">',
+    '    <div class="gw-step" id="gwF_deliver"></div>',
+    '    <pre id="gwF_block"></pre>',
+    '    <button class="gw-copy" id="gwF_copy">📋 コピー</button>',
+    '  </div>',
+    '</div>',
+    '<div class="gw-edit-sec">',
+    '  <h2>登録済みGWを編集・削除</h2>',
+    '  <p class="gw-hint">自分のGWの行で「編集」または「削除」を押し、登録時のパスキーを入力してください。運営管理の常設GWはフォームからは編集できません（運営へ連絡）。</p>',
+    '  <ul class="gw-elist" id="gwF_elist"></ul>',
+    '</div>'
+  ].join("\n");
+
+  function boot() {
+    var mapEl = document.getElementById("gwMap");
+    if (mapEl) initList(mapEl);
+    var host = document.getElementById("gwForm");
+    if (host) initForm(host);
+  }
+  if (window.document$ && typeof window.document$.subscribe === "function") {
+    window.document$.subscribe(boot);
+  } else if (document.readyState !== "loading") {
+    boot();
+  } else {
+    document.addEventListener("DOMContentLoaded", boot);
+  }
+})();

@@ -1,0 +1,54 @@
+{
+  "updated": "2026-07-27",
+  "note": "ptp mesh 公開ゲートウェイの単一情報源（手編集）。2026-07-27に登録フォーム方式をやめて静的運用に切り替えたため、パスキー(key_hash/key_salt)は廃止した。稼働状態はここでは管理せず meshmap.net に委譲する。掲載位置は『公開してよい目印(駅など)』であって正確な住所ではない。掲載は運用者のオプトイン＝自分のGWだけを載せること。",
+  "gateways": [
+    {
+      "name": "方南町ゲートウェイ",
+      "name_en": "Hounancho gateway",
+      "country": "日本",
+      "country_en": "Japan",
+      "region": "東京都",
+      "region_en": "Tokyo",
+      "area": "方南町駅周辺",
+      "area_en": "Around Hounancho Sta.",
+      "preset": "LongFast / slot12",
+      "root": "ptp/commons",
+      "lat": 35.6788,
+      "lon": 139.6497,
+      "schedule": "常時",
+      "schedule_en": "24/7"
+    },
+    {
+      "name": "千駄ヶ谷ゲートウェイ",
+      "name_en": "Sendagaya gateway",
+      "country": "日本",
+      "country_en": "Japan",
+      "region": "東京都",
+      "region_en": "Tokyo",
+      "area": "千駄ヶ谷駅周辺",
+      "area_en": "Around Sendagaya Sta.",
+      "preset": "LongFast / slot12",
+      "root": "ptp/commons",
+      "lat": 35.6817,
+      "lon": 139.711,
+      "schedule": "常時",
+      "schedule_en": "24/7"
+    },
+    {
+      "name": "秋葉原ゲートウェイ",
+      "name_en": "Akihabara gateway",
+      "country": "日本",
+      "country_en": "Japan",
+      "region": "東京都",
+      "region_en": "Tokyo",
+      "area": "秋葉原",
+      "area_en": "Akihabara",
+      "preset": "LongFast / slot12",
+      "root": "ptp/akiba-pcn",
+      "lat": 35.6984,
+      "lon": 139.7731,
+      "schedule": "夜間停止",
+      "schedule_en": "Offline at night"
+    }
+  ]
+}
