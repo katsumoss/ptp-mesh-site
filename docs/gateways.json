@@ -41,12 +41,12 @@
       "country_en": "Japan",
       "region": "東京都",
       "region_en": "Tokyo",
-      "area": "秋葉原",
-      "area_en": "Akihabara",
+      "area": "秋葉原ラジオデパート近辺",
+      "area_en": "Near Akihabara Radio Department Store",
       "preset": "LongFast / slot12",
       "root": "ptp/akiba-pcn",
-      "lat": 35.6984,
-      "lon": 139.7731,
+      "lat": 35.6985,
+      "lon": 139.771,
       "schedule": "夜間停止",
       "schedule_en": "Offline at night"
     }

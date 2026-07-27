@@ -9,7 +9,7 @@ To join, put one of the strings below into the root topic field described in [Jo
 | Root topic | Area | What it is |
 |---|---|---|
 | `ptp/commons` | Tokyo (around Hounancho Sta. / Sendagaya Sta.) plus external participants incl. Ibaraki (Mito–Hitachinaka) | **The shared group.** A public island anyone can read and write. Start here if unsure |
-| `ptp/akiba-pcn` | Akihabara | The Akihabara line. **Fully isolated** from commons |
+| `ptp/akiba-pcn` | Akihabara (near the Radio Department Store) | The Akihabara line. **Fully isolated** from commons |
 
 Those two are the only published groups. **You can create your own instantly by using `ptp/<any-name>`** (no server-side registration). That island connects to nobody else, though, so announce the name if you want company.
 
