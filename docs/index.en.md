@@ -36,7 +36,7 @@ The root topic is the **group name** that decides how far a message travels. A g
 - **Delivery = root topic.** Messages reach only people on the same root. `ptp/commons` is the shared public group; `ptp/<any-name>` is an independent group of your own. Start with **`ptp/commons`**.
 - **Secrecy = PSK.** commons uses the default PSK (`AQ==`), so it is readable by anyone. To make your own group private, add a **named channel with your own PSK** (separate root + your own PSK = a genuinely private group).
 
-See [Groups](topics.md) for what exists today.
+See [Groups and gateways](gateways.md) for what exists today.
 
 ## What you can use here
 

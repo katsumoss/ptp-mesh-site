@@ -33,8 +33,7 @@ theme:
 nav:
   - ホーム: index.md
   - 参加方法: connect.md
-  - グループ一覧: topics.md
-  - ゲートウェイ一覧: gateways.md
+  - グループとゲートウェイ: gateways.md
   - kbot（情報bot）: kbot.md
   - 防災チャンネル: bousai.md
   - 公式マップに載せる: map.md
@@ -56,8 +55,7 @@ plugins:
           nav_translations:
             ホーム: Home
             参加方法: Join
-            グループ一覧: Groups
-            ゲートウェイ一覧: Gateways
+            グループとゲートウェイ: Groups and gateways
             kbot（情報bot）: kbot (info bot)
             防災チャンネル: Disaster channel
             公式マップに載せる: Public map
