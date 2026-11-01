@@ -9,9 +9,8 @@ To join, put one of the strings below into the root topic field described in [Jo
 | Root topic | What it is |
 |---|---|
 | `ptp/commons` | **The shared group.** A public island anyone can read and write. Start here if unsure |
-| `ptp/akiba-pcn` | The Akihabara line. **Fully isolated** from commons |
 
-Those two are the only published groups. **You can create your own instantly by using `ptp/<any-name>`** (no server-side registration). That island connects to nobody else, though, so announce the name if you want company.
+This is the only published group (the Akihabara gateway joined commons on 2026-10-29). **You can create your own instantly by using `ptp/<any-name>`** (no server-side registration). That island connects to nobody else, though, so announce the name if you want company.
 
 !!! note "A root topic is a partition, not a secret"
     Anyone who knows the root topic can join — it is a **soft partition**. If you want the contents hidden, add a **named channel with your own PSK** on top of the group. Think of it as two layers: delivery is the topic, secrecy is the PSK.
@@ -47,7 +46,7 @@ All groups live on the **ptp mesh server**, which is separate from the official 
 
 | | Host | Contents |
 |---|---|---|
-| **ptp mesh (here)** | `160.16.104.222:1883` | `ptp/commons` / `ptp/akiba-pcn` |
+| **ptp mesh (here)** | `160.16.104.222:1883` | `ptp/commons` |
 | Official broker | `mqtt.meshtastic.org` | Public meshes worldwide. The [public map](map.md) is fed from here |
 
 [`ptp-bousai`](bousai.md) is **a channel, not a group** — it flows inside `ptp/commons`. (Its source data is taken from the JPEQ channel on the official broker.)

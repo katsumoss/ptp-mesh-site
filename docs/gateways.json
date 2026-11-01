@@ -44,7 +44,7 @@
       "area": "秋葉原ラジオデパート近辺",
       "area_en": "Near Akihabara Radio Department Store",
       "preset": "LongFast / slot12",
-      "root": "ptp/akiba-pcn",
+      "root": "ptp/commons",
       "lat": 35.6985,
       "lon": 139.771,
       "schedule": "夜間停止",
