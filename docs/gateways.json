@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-27",
+  "updated": "2026-11-02",
   "note": "ptp mesh 公開ゲートウェイの単一情報源（手編集）。2026-07-27に登録フォーム方式をやめて静的運用に切り替えたため、パスキー(key_hash/key_salt)は廃止した。稼働状態はここでは管理せず meshmap.net に委譲する。掲載位置は『公開してよい目印(駅など)』であって正確な住所ではない。掲載は運用者のオプトイン＝自分のGWだけを載せること。",
   "gateways": [
     {
@@ -16,7 +16,8 @@
       "lat": 35.6788,
       "lon": 139.6497,
       "schedule": "常時",
-      "schedule_en": "24/7"
+      "schedule_en": "24/7",
+      "bousai": false
     },
     {
       "name": "千駄ヶ谷ゲートウェイ",
@@ -32,7 +33,8 @@
       "lat": 35.6817,
       "lon": 139.711,
       "schedule": "常時",
-      "schedule_en": "24/7"
+      "schedule_en": "24/7",
+      "bousai": true
     },
     {
       "name": "秋葉原ゲートウェイ",
@@ -48,7 +50,25 @@
       "lat": 35.6985,
       "lon": 139.771,
       "schedule": "夜間停止",
-      "schedule_en": "Offline at night"
+      "schedule_en": "Offline at night",
+      "bousai": false
+    },
+    {
+      "name": "名古屋ゲートウェイ",
+      "name_en": "Nagoya gateway",
+      "country": "日本",
+      "country_en": "Japan",
+      "region": "愛知県",
+      "region_en": "Aichi",
+      "area": "名古屋・栄周辺",
+      "area_en": "Around Sakae, Nagoya",
+      "preset": "LongFast / slot12",
+      "root": "ptp/commons",
+      "lat": 35.1707,
+      "lon": 136.9086,
+      "schedule": "常時",
+      "schedule_en": "24/7",
+      "bousai": false
     }
   ]
 }

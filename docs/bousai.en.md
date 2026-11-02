@@ -2,7 +2,10 @@
 
 A channel that carries Japanese disaster information — earthquakes, weather warnings, typhoons — **verbatim, as it arrives**. Set it up and you receive without asking. It is **opt-in** and does not affect any of your existing channels.
 
-To listen you **do not need MQTT**. Enter the name and PSK, and be within range of a gateway.
+To listen you **do not need MQTT**. Enter the name and PSK, and be within range of a gateway that broadcasts this channel.
+
+!!! note "Which gateways broadcast it"
+    Among the gateways we run, only the **Sendagaya gateway** broadcasts this channel over the air for now (as of 2026-11-02). The [gateway list](gateways.md) shows which ones do in the "ptp-bousai" column. Elsewhere you can still receive it if a nearby gateway operator enables it (Downlink ON, below).
 
 ## What to set (only two things)
 

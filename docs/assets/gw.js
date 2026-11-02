@@ -17,8 +17,8 @@
   var LEAFLET_JS = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";
   var EN = /\/en\//.test(location.pathname);
   var T = EN
-    ? { gw: "Gateway", area: "Area", root: "Group (root)", sched: "Uptime", loading: "Could not load the list", none: "—" }
-    : { gw: "ゲートウェイ", area: "エリア", root: "グループ(root)", sched: "運用", loading: "一覧を読み込めませんでした", none: "—" };
+    ? { gw: "Gateway", area: "Area", root: "Group (root)", sched: "Uptime", bousai: "ptp-bousai", loading: "Could not load the list", none: "—" }
+    : { gw: "ゲートウェイ", area: "エリア", root: "グループ(root)", sched: "運用", bousai: "防災ch", loading: "一覧を読み込めませんでした", none: "—" };
 
   function loadLeaflet() {
     return new Promise(function (resolve) {
@@ -51,7 +51,7 @@
       return (a.country + a.region + a.name).localeCompare(b.country + b.region + b.name, "ja");
     });
     var html = '<div class="gw-tblwrap"><table class="gw-tbl"><thead><tr>' +
-      "<th>" + T.gw + "</th><th>" + T.area + "</th><th>preset</th><th>" + T.root + "</th><th>" + T.sched + "</th>" +
+      "<th>" + T.gw + "</th><th>" + T.area + "</th><th>preset</th><th>" + T.root + "</th><th>" + T.sched + "</th><th>" + T.bousai + "</th>" +
       "</tr></thead><tbody>";
     var cur = "";
     rows.forEach(function (g) {
@@ -59,13 +59,14 @@
       if (loc !== cur) {
         cur = loc;
         var cnt = rows.filter(function (x) { return pick(x, "country") + " / " + pick(x, "region") === loc; }).length;
-        html += '<tr class="gw-grp"><td colspan="5">' + esc(loc) + '<span class="gw-badge">' + cnt + "</span></td></tr>";
+        html += '<tr class="gw-grp"><td colspan="6">' + esc(loc) + '<span class="gw-badge">' + cnt + "</span></td></tr>";
       }
       html += '<tr><td class="gw-name">' + esc(pick(g, "name")) + "</td>" +
         "<td>" + esc(pick(g, "area") || T.none) + "</td>" +
         "<td>" + esc(g.preset || T.none) + "</td>" +
         '<td><span class="gw-code">' + esc(g.root) + "</span></td>" +
-        '<td><span class="gw-sched">' + esc(pick(g, "schedule") || T.none) + "</span></td></tr>";
+        '<td><span class="gw-sched">' + esc(pick(g, "schedule") || T.none) + "</span></td>" +
+        "<td>" + (g.bousai ? "✓" : T.none) + "</td></tr>";
     });
     return html + "</tbody></table></div>";
   }
